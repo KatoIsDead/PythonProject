@@ -126,7 +126,9 @@ def students(previousWindow):
         gradesDict = {
             "prelim": None,
             "midterm": None,
-            "final": None
+            "final": None,
+            "midtermStanding": None,
+            "total": None
         }
 
         scoresListBox = tk.Listbox(gradingWindow, width=100)
@@ -251,6 +253,21 @@ def students(previousWindow):
             scoresDict["minor"].clear()
             scoresDict["major"].clear()
 
+        def midtermStanding():
+            try:
+                prelimGrade = gradesDict["prelim"]
+                midtermGrade = gradesDict["midterm"]
+                if prelimGrade is None or midtermGrade is None:
+                    messagebox.showerror("Missing Grades!", "Please compute for both of the Prelim and Midterm grades!")
+                    return
+                computeAvg = (prelimGrade * 0.3) + (midtermGrade * 0.3)
+                gradesDict["midtermStanding"] = computeAvg
+                scoresListBox.insert(tk.END, f"Midterm Standing: {computeAvg: .2f}")
+            except ValueError:
+                messagebox.showerror("Error!", "Please try again")
+
+
+
         def deleteGrade():
             selected = scoresListBox.curselection()
             if not selected:
@@ -281,15 +298,26 @@ def students(previousWindow):
                 gradesDict["midterm"] = None
             elif "Final Grade" in selectedIndex:
                 gradesDict["final"] = None
+            elif "Midterm Standing" in selectedIndex:
+                gradesDict["midtermStanding"] = None
+            elif "Computed All Grades:" in selectedIndex:
+                gradesDict["total"] = None
 
         def computeAllGrade():
-            prelimGrade = gradesDict["prelim"]
-            midtermGrade = gradesDict["midterm"]
-            finalGrade = gradesDict["final"]
+            try:
+                prelimGrade = gradesDict["prelim"]
+                midtermGrade = gradesDict["midterm"]
+                finalGrade = gradesDict["final"]
 
-            computeAvg = (prelimGrade * 0.3) + (midtermGrade * 0.3) + (finalGrade * 0.4)
-            scoresListBox.insert(tk.END, f"Computed All Grades: Prelim Grade: {prelimGrade}, Midterm Grade: {midtermGrade}, Final Grade: {finalGrade}, Average Grade: {computeAvg}")
+                if prelimGrade is None or midtermGrade is None or finalGrade is None:
+                    messagebox.showerror("ERROR!", "The Prelim, Midterm, and Final Grades were not computed. Please compute them first before you proceed here.")
 
+                computeAvg = (prelimGrade * 0.3) + (midtermGrade * 0.3) + (finalGrade * 0.4)
+                gradesDict["total"] = computeAvg
+                scoresListBox.insert(tk.END,f"Computed All Grades: Prelim Grade: {prelimGrade:.2f}, Midterm Grade: {midtermGrade:.2f}, Final Grade: {finalGrade:.2f}, Average Grade: {computeAvg:.2f}")
+
+            except ValueError:
+                messagebox.showerror("ERROR!", "Grades not found in dictionary.")
 
         tk.Label(gradingWindow, text=f"Minor:").pack()
         minorInp.pack()
@@ -300,6 +328,7 @@ def students(previousWindow):
 
         tk.Button(gradingWindow, text="Prelim", command=prelim).pack()
         tk.Button(gradingWindow, text="Midterm", command=midterm).pack()
+        tk.Button(gradingWindow, text="Midterm Standing", command=midtermStanding).pack()
         tk.Button(gradingWindow, text="Final", command=final).pack()
         tk.Button(gradingWindow, text="Compute All", command=computeAllGrade).pack()
         tk.Button(gradingWindow, text="Delete", command=deleteGrade).pack()
